@@ -7,10 +7,17 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'JsonException' => $vendorDir . '/symfony/polyfill-php73/Resources/stubs/JsonException.php',
+    'Models\\certification' => $baseDir . '/controller/Models/certification.php',
+    'Models\\certification_category' => $baseDir . '/controller/Models/certification_category.php',
     'Models\\instruction' => $baseDir . '/controller/Models/instruction.php',
     'Models\\option' => $baseDir . '/controller/Models/option.php',
+    'Models\\primary_instruction' => $baseDir . '/controller/Models/primary_instruction.php',
+    'Models\\primary_option' => $baseDir . '/controller/Models/primary_option.php',
+    'Models\\primary_question' => $baseDir . '/controller/Models/primary_question.php',
+    'Models\\primary_subject' => $baseDir . '/controller/Models/primary_subject.php',
     'Models\\question' => $baseDir . '/controller/Models/question.php',
     'Models\\subject' => $baseDir . '/controller/Models/subject.php',
+    'Models\\user' => $baseDir . '/controller/Models/user.php',
     'Normalizer' => $vendorDir . '/symfony/polyfill-intl-normalizer/Resources/stubs/Normalizer.php',
     'Stringable' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/Stringable.php',
     'ValueError' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/ValueError.php',

@@ -33,6 +33,9 @@ import  header from './components/header.vue'
 import  footer from './components/footer.vue'
 import  sidebar from './components/sidebar.vue'
 import question_category from './components/question/question_category.vue'
+import certification_category from './components/certification_category.vue'
+import spinner from '@/components/spinner'
+import vuetify from './plugins/vuetify';
 
 Vue.config.productionTip = false
 Vue.use(VueAxios, axios)
@@ -43,12 +46,17 @@ Vue.use(VueSweetalert2)
 Vue.component('app-header', header)
 Vue.component('app-sidebar', sidebar)
 Vue.component('app-question-category',question_category)
+Vue.component('app-certification-category',certification_category)
 Vue.component('app-footer', footer)
+Vue.component('app-spinner',spinner);
+
+export const bus = new Vue();
 
 
 // GLOBAL VARIABLES
-// Vue.prototype.$hostname = "http://localhost/MY_WEB_WORKS/eduplus_new/admin.eduplus/";
-Vue.prototype.$hostname = 'https://eduplus.sch.ng/admin/';
+Vue.prototype.$hostname = "http://localhost/MY_WEB_WORKS/eduplus_new/admin.eduplus/api/";
+// Vue.prototype.$hostname = 'https://eduplus.sch.ng/admin/api/';
+
 
 // window variable
 Vue.prototype.$windowObj = window;
@@ -57,5 +65,6 @@ Vue.prototype.$windowObj = window;
 
 new Vue({
   router,
+  vuetify,
   render: h => h(App)
 }).$mount('#app')

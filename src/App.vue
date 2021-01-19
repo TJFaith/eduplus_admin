@@ -1,19 +1,49 @@
+
 <template>
-  <div>
-    <div class="container-fluid p-0">
-    <div class="row">
-      <div class="col-3">
-        <app-sidebar></app-sidebar>
-        <app-header></app-header>
-      </div>
-      <div class="col-8 pageLayout">
-        <router-view></router-view>
-      </div>
-    </div>
+  <v-app>
+    <app-header></app-header>
+<div  v-if="hideSideBar">
+    <app-sidebar></app-sidebar>
 </div>
-  </div>
+      <router-view></router-view>
+    <app-footer></app-footer>
+  </v-app>
 </template>
 
-<style>
+<script>
+import { bus } from './main'
 
-</style>
+export default {
+    data(){
+        return{
+           show_new_title:false,
+           hideSideBar:true,
+        }
+    },
+    methods:{
+       hideSideBarMTD(){
+         if(this.$session.has('admin-login')){
+           this.hideSideBar = true
+         }
+             bus.$on('side_bar_Show', (data) => {
+            this.hideSideBar = data;
+            // alert(data)
+          })
+          // alert(this.hideSideBar)
+        },
+    },
+    created(){
+      this.hideSideBarMTD();
+    },
+    // watch: {
+    //   hideSideBar: function(){
+    //         bus.$on('side_bar_Show', (data) => {
+    //         this.hideSideBar = data;
+      
+    //       })
+    //   }
+     
+    // }
+
+}
+</script>

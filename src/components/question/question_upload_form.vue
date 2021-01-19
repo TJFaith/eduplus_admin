@@ -1,9 +1,9 @@
 <template>
-    <div>
+    <div class="pageLayout container">
        
    <p class="text-muted border-left pl-3"><b>Upload New {{$route.params.sub_id}} Question </b>  
   
-   <router-link to="/admin/uploadQuestion"><button class="btn btn-light mr-5"> CHANGE SUBJECT </button></router-link>
+   <router-link to="/uploadQuestion"><button class="btn btn-light mr-5"> CHANGE SUBJECT </button></router-link>
    </p>
    
  
@@ -121,7 +121,7 @@
                         <button type="button" class="btn btn-secondary" @click="showModel=false" >Close</button>
                         <button type="submit" class="btn btn-primary">
                             <span> {{feedBack}} </span>
-                            <i v-if="!showSpinner" class="fa fa-spinner fa-spin" style="font-size:24px"></i> </button>
+                            <i v-if="!showSpinner" class=" fa fa-spinner fa-spin" style="font-size:24px"></i> </button>
                     </div>
                    </form>
                 </div>
@@ -333,15 +333,15 @@ export default {
         getAnswer(q_id, answer_id, count){
             let question_id = {'question_id':q_id, 'answer_id':answer_id};
             
-            this.axios.post(this.$hostname+"api.php?action=getAnswer",question_id).then((response)=>{
+            this.axios.post(this.$hostname+"junior_api.php?action=getAnswer",question_id).then((response)=>{
                 this.allQuestions[count].answer = response.data[0].options;
             }).catch(error=>{
-                alert(error);
+               error;
             })
         },
         getAllQuestions(){
             let subject_id = {'subject_id':this.$session.get('subject')};
-             this.axios.post(this.$hostname+"api.php?action=getAllQuestions",subject_id).then((response)=>{
+             this.axios.post(this.$hostname+"junior_api.php?action=getAllQuestions",subject_id).then((response)=>{
                  let allQuestions = response.data;
                    this.allQuestions= allQuestions;
                 
@@ -353,7 +353,7 @@ export default {
                   this.getAnswer(question_id, answer_id, index)
                  }
             }).catch(error=>{
-                alert(error);
+                console.log(error);
             })
         },
 
@@ -373,12 +373,11 @@ export default {
             if(!Object.prototype.hasOwnProperty.call(this.saveQuestion,'answer')){
                 this.saveQuestion.answer = '';
             }
-             this.axios.post(this.$hostname+"api.php?action=save_question",this.saveQuestion).then((response)=>{
+             this.axios.post(this.$hostname+"junior_api.php?action=save_question",this.saveQuestion).then((response)=>{
                 if (response.data=='success'){    
                     this.showModel=false;
                     this.feedBack="Save";
                 }
-                // console.log(response.data);
                
             }).then(saveQuestion=>{
                 saveQuestion;
@@ -389,7 +388,7 @@ export default {
 
             }).
             catch(error=>{
-                alert(error);
+                console.log(error);
             });
 
           
@@ -429,7 +428,7 @@ export default {
 
         deleteFunc(question_id){
              let qustion_id = {'question_id':question_id}
-             this.axios.post(this.$hostname+"api.php?action=deleteQuestion",qustion_id).then((response)=>{
+             this.axios.post(this.$hostname+"junior_api.php?action=deleteQuestion",qustion_id).then((response)=>{
                  {response}
                 }).then(endre=>{
                     {endre}
@@ -437,7 +436,7 @@ export default {
 
                 })
                 .catch(error=>{
-                    alert(error)
+                    console.log(error)
                 })
 
         },
@@ -445,14 +444,14 @@ export default {
         editFunc(question_id){
            
              let question_id_obj = {'question_id':question_id}
-            this.axios.post(this.$hostname+"api.php?action=getOneQuestion",question_id_obj).then((response)=>{
+            this.axios.post(this.$hostname+"junior_api.php?action=getOneQuestion",question_id_obj).then((response)=>{
                    
                     let questionData = response.data;
                     this.saveQuestion = questionData[0];
                     
                 }).then(res=>{
                       let answer_id_arr = {'question_id':question_id, 'answer_id':this.saveQuestion.answers_id}
-                     this.axios.post(this.$hostname+"api.php?action=getAnswer",answer_id_arr).then((response2)=>{
+                     this.axios.post(this.$hostname+"junior_api.php?action=getAnswer",answer_id_arr).then((response2)=>{
                           this.saveQuestion.answer = response2.data[0].options;
                             for (let index = 0; index < this.allInstruction.length; index++) {
                                 if (this.allInstruction[index].instruction_id== this.saveQuestion.instruction_id) {
@@ -467,7 +466,7 @@ export default {
                 }).
                 catch(error=>{
                       
-                    alert(error)
+                    console.log(error)
                 })
         },
 
@@ -477,19 +476,18 @@ export default {
         // main crude
         getInstructions(){
                     let subject_id = {'subject_id':this.$session.get('subject')};
-                    this.axios.post(this.$hostname+"api.php?action=getInstructions",subject_id).then((response)=>{
+                    this.axios.post(this.$hostname+"junior_api.php?action=getInstructions",subject_id).then((response)=>{
                     
                         this.allInstruction= response.data;
                     }).catch(error=>{
-                        alert(error);
+                        console.log(error);
                     });
                 },
 
 
         saveInstruction(){
             let instruction_data = {'subject_id':this.$session.get('subject'),'instruction_id':this.selected_ins.id,'instruction':this.selected_ins.text};
-            console.log(instruction_data);
-            this.axios.post(this.$hostname+"api.php?action=saveInstruction", instruction_data).then((response)=>{
+            this.axios.post(this.$hostname+"junior_api.php?action=saveInstruction", instruction_data).then((response)=>{
                          response;
                          this.saveQuestion.instruction_id=instruction_data.instruction_id;
                          this.currentInstruction=instruction_data.instruction.slice(0,50)+'....';
@@ -504,7 +502,7 @@ export default {
         },
         deleteInstructon(instruction_id){
            let instruction_id_obj = {'instruction_id':instruction_id}
-                     this.axios.post(this.$hostname+"api.php?action=deleteInstruction", instruction_id_obj).then((response)=>{
+                     this.axios.post(this.$hostname+"junior_api.php?action=deleteInstruction", instruction_id_obj).then((response)=>{
                          response;
                          this.getInstructions();
                              this.showEditor = false;
@@ -551,13 +549,13 @@ export default {
         // START ======================= METHODS FOR OPTIONS
             getOptionsFromDB(){
                     let option_data = {'question_id':this.saveQuestion};  
-                    this.axios.post(this.$hostname+"api.php?action=getQuestionOptions",option_data).then((response)=>{
+                    this.axios.post(this.$hostname+"junior_api.php?action=getQuestionOptions",option_data).then((response)=>{
                         this.optionObject = response.data;
                     });
             },
             showOptionMtd(){
                     let option_data = {'question_id':this.saveQuestion};    
-                    this.axios.post(this.$hostname+"api.php?action=getQuestionOptions",option_data).then((response)=>{
+                    this.axios.post(this.$hostname+"junior_api.php?action=getQuestionOptions",option_data).then((response)=>{
                         this.optionObject = response.data;
                         this.currentOption = this.saveQuestion.answer;
                         if(this.saveQuestion.answer==undefined){
@@ -581,14 +579,14 @@ export default {
             }else{
             if(this.currentOption != '' & this.optionStatusText != 'UPDATE'){
                 let option_data = {'question_id':this.saveQuestion.question_id, 'options':this.currentOption};  
-                 this.axios.post(this.$hostname+"api.php?action=saveOptions",option_data).then((response)=>{
+                 this.axios.post(this.$hostname+"junior_api.php?action=saveOptions",option_data).then((response)=>{
                      response
                      this.getOptionsFromDB();
                  })
             }else if(this.optionStatusText == 'UPDATE'){
                 
                  let option_data = {'question_id':this.saveQuestion.question_id, 'option_id':this.saveQuestion.answers_id, 'options':this.currentOption};  
-                 this.axios.post(this.$hostname+"api.php?action=updateOption",option_data).then((response)=>{
+                 this.axios.post(this.$hostname+"junior_api.php?action=updateOption",option_data).then((response)=>{
                      response
                     this.getOptionsFromDB();
                  })
@@ -610,7 +608,7 @@ export default {
         },
         deleteOpton(){
             let option_data = {'option_id':this.saveQuestion.answers_id};  
-                 this.axios.post(this.$hostname+"api.php?action=deleteOption",option_data).then((response)=>{
+                 this.axios.post(this.$hostname+"junior_api.php?action=deleteOption",option_data).then((response)=>{
                      response
                     this.getOptionsFromDB();
             })
@@ -642,7 +640,6 @@ export default {
     mounted(){
         this.getAllQuestions();
         this.getInstructions();
-        console.log(this.allQuestions);
     },
     updated(){
        

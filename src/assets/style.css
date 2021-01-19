@@ -1,8 +1,36 @@
 /* header code */
+/* fonts */
+@font-face {
+    font-family: myFirstFont;
+    src: url(fonts/Roboto-Black.ttf);
+ }
+/* *{
+    font-family: myFirstFont;
+} */
+
+body{
+    margin:0 auto;
+}
+
+.loader_container{
+    height: 100vh;
+    width: 100%;
+    background-color: rgba(0, 0, 0, .6);
+    position:absolute;
+    z-index: 100;
+    margin:0 auto;
+}
+.loader {
+    position:absolute;
+
+    top:50%;
+    left: 50%;
+    
+}
 .pageLayout{
-    margin-top: 8%;
+
     /* border:2px solid red; */
-    padding:0;
+    padding: 5rem 0% 0% 20%;
    
 }
 
@@ -47,9 +75,10 @@
     color:#fff;
 }
 a:hover{
-    color:bisque;
+    color:rgb(110, 108, 105);
     text-decoration: none;
     cursor: pointer;
+    
 }
 
 /* list style  */
@@ -92,4 +121,20 @@ cursor: pointer;
     border: 2px solid green;
     position: fixed;
     width: 100%;
+  }
+
+  /* admin login */
+  .admin-login{
+      background-image: url(admin.png);
+      background-repeat: no-repeat;
+      background-size: contain;
+      height:100vh; width:100vw;
+      left:50%
+  }
+
+  .loginPg{
+      background-image: url(edubg.jpg);
+      background-repeat: no-repeat;
+      background-size: cover;
+     
   }

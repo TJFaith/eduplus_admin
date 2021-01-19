@@ -26,4 +26,5 @@ use Illuminate\Database\Capsule\Manager as Capsule;
  $capsule->setAsGlobal();
 // Setup the Eloquent ORM.
  $capsule->bootEloquent();
+
 ?> 

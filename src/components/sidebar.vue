@@ -1,63 +1,122 @@
 <template>
-    <div class="sidebar">
-        <div class="w-100 bg-dark py-4 pl-4">
-            <img style="width:50px" class="img-rounded" src="@/assets/logo.png" alt="">
-            <span class="ml-3 " >Admin
-                <span @click="transition.slide.user = !transition.slide.user" class="float-right mr-3 mt-3">
-                <i class="fa fa-angle-double-right "></i></span>
-            </span>
 
-           <transition name="slide">
+    <v-navigation-drawer
+      absolute
+      dark
+      width="300"
+      permanent
+      :expand-on-hover ="$vuetify.breakpoint.mobile"
+       class="mx-auto sidebar pt-13"
+    height="100vh"
+    >
+       <v-list class="mt-3">
            
-            <ul v-if="transition.slide.user" class="mt-3 list-unstyled">
-                <li class="p-2 bg-white text-info border-right-0 border border-primary shadow shadow-sm">Edit Profile</li>
-                <li class="p-2">Users</li>
-                <hr class="bg-secondary">
-                <li class="p-2 ">Log Out</li>
-            </ul>
-           </transition> 
-
-          
-
-        </div>
-             <ul class="list-unstyled mt-3 ml-4">
-              <router-link to="/admin/"> <li class="py-3">
-                    <span class="float-left mr-3 ">
-                        <i class="fas fa-tachometer-alt "></i>
-                    </span>  
-                   DASHBOARD
-                </li>
-            </router-link>
+           <v-list-group no-action>
               
-                <li @click=" transition.slide.question = !transition.slide.question">
-                    <span class="float-left mr-3 "><i class="fas fa-quote-left "></i></span>  
-                    QUESTIONS 
-                    <span class="float-right mr-3 ">
-                        <i class="fa fa-angle-double-right "></i>
-                    </span>
-    
-                   <transition name="question">
-                   
-                    <ul v-if="transition.slide.question" class="list-unstyled bg-white shadow-lg text-muted mt-3">
-                        <li class="pt-3 pl-5">ALL QUESTIONS</li>
-                       <router-link to="/admin/uploadQuestion"> <li class="pb-3 pt-2 pl-5">UPLOAD QUESTION</li> </router-link>
-                    </ul>
-                 
-                   </transition>
-                   
-                </li>
-                 <li class="py-3">
-                <router-link to="/admin/subjects" >
-                    <span class="float-left mr-3 "><i class="fas fa-tachometer-alt "></i></span>  
-                   SUBJECTS
-                </router-link>
-                </li>
+            <template v-slot:activator>
+                 <v-list-item class="px-0">
+                    <v-list-item-avatar>
+                        <v-img src="https://randomuser.me/api/portraits/women/85.jpg"></v-img>
+                    </v-list-item-avatar> 
+                    <v-list-item-content>
+                        <v-list-item-title class="title">
+                            Sandra 
+                        </v-list-item-title>
+                        <v-list-item-subtitle>sandra</v-list-item-subtitle>
+                    </v-list-item-content>
+                </v-list-item>
+             </template>
 
-           </ul>
-    
-    </div>
+            
+                    <v-list-item>
+                        <v-list-item-title>
+                            <v-icon class="mr-5">fa fa-file</v-icon>Edit profile
+                        </v-list-item-title>
+                    </v-list-item>
+                    <v-list-item>
+                        <v-list-item-title style="cursor:pointer">
+                            <v-icon class="mr-5">fa fa-users</v-icon>Users
+                        </v-list-item-title>
+                    </v-list-item>
+                    <v-list-item>
+                        <v-list-item-title style="cursor:pointer" @click="logOut()">
+                            <v-icon class="mr-5">mdi-run</v-icon>log Out
+                        </v-list-item-title>
+                    </v-list-item>
+                    
+                
+
+           </v-list-group>
+       </v-list>
+     
+
+        <v-divider></v-divider>
+        <v-list>
+            <v-list-item to="/">
+                <v-list-item-icon>
+                    <v-icon>fas fa-tachometer-alt </v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                    <v-list-item-title>Dashboard</v-list-item-title>
+                </v-list-item-content>
+            </v-list-item>
+
+            <!-- question list group -->
+            <v-list-group no-action prepend-icon="fas fa-quote-left">
+                <template v-slot:activator>
+                    <v-list-item-content>
+                        <v-list-item-title>Questions</v-list-item-title>
+                    </v-list-item-content>
+                </template>
+                <v-list-item to="#">
+                    <v-list-item-content>
+                        <v-list-item-title>All questions</v-list-item-title>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-list-item to="/uploadQuestion">
+                    <v-list-item-content>
+                        <v-list-item-title>Upload question</v-list-item-title>
+                    </v-list-item-content>
+                </v-list-item>
+            </v-list-group>
+
+            <!-- subject list -->
+         
+             <v-list-group no-action prepend-icon="fas fa-tachometer-alt">
+                <template v-slot:activator>
+                    <v-list-item-content>
+                        <v-list-item-title>Subjects</v-list-item-title>
+                    </v-list-item-content>
+                </template>
+                <v-list-item to="/subjects/primary">
+                    <v-list-item-content>
+                        <v-list-item-title>Primary School</v-list-item-title>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-list-item to="/subjects/junior">
+                    <v-list-item-content>
+                        <v-list-item-title>Junior School</v-list-item-title>
+                    </v-list-item-content>
+                </v-list-item>
+            </v-list-group>
+
+
+            <!-- certification -->
+            <v-list-item to="/certification/1/10">
+                <v-list-item-icon>
+                    <v-icon>fas fa-book </v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                    <v-list-item-title>Certification</v-list-item-title>
+                </v-list-item-content>
+            </v-list-item>
+        </v-list>
+    </v-navigation-drawer>
+
 </template>
 <script>
+import { bus } from '../main'
+
 export default {
     data(){
         return{
@@ -66,9 +125,62 @@ export default {
                     user:false,
                     question:false,
                 },
-            }
+            },
+              items: [
+        {
+          action: 'mdi-ticket',
+          items: [{ title: 'List Item' }],
+          title: 'Attractions',
+        },
+        {
+          action: 'mdi-silverware-fork-knife',
+          active: true,
+          items: [
+            { title: 'Breakfast & brunch' },
+            { title: 'New American' },
+            { title: 'Sushi' },
+          ],
+          title: 'Dining',
+        },
+        {
+          action: 'mdi-school',
+          items: [{ title: 'List Item' }],
+          title: 'Education',
+        },
+        {
+          action: 'mdi-run',
+          items: [{ title: 'List Item' }],
+          title: 'Family',
+        },
+        {
+          action: 'mdi-bottle-tonic-plus',
+          items: [{ title: 'List Item' }],
+          title: 'Health',
+        },
+        {
+          action: 'mdi-content-cut',
+          items: [{ title: 'List Item' }],
+          title: 'Office',
+        },
+        {
+          action: 'mdi-tag',
+          items: [{ title: 'List Item' }],
+          title: 'Promotions',
+        },
+      ],
         }
+    },
+       
+    methods:{
+        logOut(){
+         bus.$emit('loader', true);
+        this.$session.destroy();
+        this.$router.push({name:'login'}).catch(()=>{});
+        bus.$emit('loader', false);
+        bus.$emit('side_bar_Show', false);
     }
   
+    }
+    
 }
 </script>

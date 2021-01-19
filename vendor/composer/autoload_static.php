@@ -148,10 +148,17 @@ class ComposerStaticInit1c0a9d780e98b260866c3dcde3248605
 
     public static $classMap = array (
         'JsonException' => __DIR__ . '/..' . '/symfony/polyfill-php73/Resources/stubs/JsonException.php',
+        'Models\\certification' => __DIR__ . '/../..' . '/controller/Models/certification.php',
+        'Models\\certification_category' => __DIR__ . '/../..' . '/controller/Models/certification_category.php',
         'Models\\instruction' => __DIR__ . '/../..' . '/controller/Models/instruction.php',
         'Models\\option' => __DIR__ . '/../..' . '/controller/Models/option.php',
+        'Models\\primary_instruction' => __DIR__ . '/../..' . '/controller/Models/primary_instruction.php',
+        'Models\\primary_option' => __DIR__ . '/../..' . '/controller/Models/primary_option.php',
+        'Models\\primary_question' => __DIR__ . '/../..' . '/controller/Models/primary_question.php',
+        'Models\\primary_subject' => __DIR__ . '/../..' . '/controller/Models/primary_subject.php',
         'Models\\question' => __DIR__ . '/../..' . '/controller/Models/question.php',
         'Models\\subject' => __DIR__ . '/../..' . '/controller/Models/subject.php',
+        'Models\\user' => __DIR__ . '/../..' . '/controller/Models/user.php',
         'Normalizer' => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer/Resources/stubs/Normalizer.php',
         'Stringable' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Stringable.php',
         'ValueError' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/ValueError.php',
