@@ -1,0 +1,11 @@
+
+.question-enter-active, .question-leave-active, .slide-enter-active, .slide-leave-active {
+    /* transition: opacity .5s; */
+    animation-name: fadeInLeftBig;
+    animation-duration: .65s;
+  }
+  .question-enter, .question-leave-to, .slide-enter, .slide-leave-to {
+      animation-name: fadeOutLeftBig;
+    animation-duration: .65s;
+    /* opacity: 0; */
+  }
