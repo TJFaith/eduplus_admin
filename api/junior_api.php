@@ -79,6 +79,11 @@ if($action == 'deleteInstruction'){
     return json_encode($controllerQuery->deleteInstruction($query));
 }
 
+if($action == 'bindInstruction'){
+    $query = json_decode(file_get_contents("php://input"),true);
+    return json_encode($controllerQuery->deleteInstruction($query));
+}
+
 // =================================END OF API FOR ********* UPDATE INSTRUCTION **********
 
     if($action=='deleteQuestion'){
@@ -99,6 +104,11 @@ if($action == 'deleteInstruction'){
 
 
     // API FOR OPTION
+    if($action == 'deleteOption'){
+        $query = json_decode(file_get_contents("php://input"),true);
+        return json_encode($controllerQuery->deleteOption($query));
+    }
+
     if($action == 'getOptions'){
         $query = json_decode(file_get_contents("php://input"),true);
         return json_encode($controllerQuery->getOptions($query));

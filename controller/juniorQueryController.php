@@ -19,6 +19,7 @@ class juniorQueryController
         return $token = $id_type.'_'.$token.$current_date;
     }
 
+    // METHOD FOR ALL SUBJECTS ===========================================================================================
     public function get_junior_AllSubject(){
         $subject_array  = array();
         $subject = subject::orderBy('created_at','desc')->get();
@@ -66,9 +67,35 @@ class juniorQueryController
     }
   
     public function getAllQuestions($data){
-     echo question::orderBy('question_id','desc')->where('subject_id',$data['subject_id'])->get();
+        $allquestion =array();
+        $answer='';
+     $question = question::orderBy('created_at','desc')->where('subject_id',$data['subject_id'])->get();
+     foreach ($question as $qst) {
+        $option = option::where('question_id', $qst->question_id)->get();
+        $answers = option::select('options')->where('option_id',  $qst->answers_id)->get();
+        $instruction = instruction::select('instruction')->where('instruction_id', $qst->instruction_id)->first();
+        foreach ($answers as $ans) {
+           $answer = $ans->options;
+        }
+           array_push($allquestion, array(
+               'answers_id'         =>      $qst->answers_id,
+               'answer'             =>      $answer,
+               'instruction_id'     =>      $qst->instruction_id,
+               'instruction'        =>      $instruction['instruction'],
+               'question_id'        =>      $qst->question_id,
+               'questions'          =>      $qst->questions,
+               'subject_id'         =>      $qst->subject_id,
+               'options'            =>      $option,
+           ));
+
+          
+           
+
+     }
+     echo json_encode($allquestion);
 
     }
+
 
     public function getAnswer($data){
             echo option::where('question_id',$data['question_id'])->where('option_id',$data['answer_id'])->get();   
@@ -99,7 +126,15 @@ public function saveOptions($data){
     
     public function deleteOption($data)
     {
-        option::where('option_id', '=', $data['option_id'])->delete();
+        
+        $delOpt = option::where('option_id',  $data['option_id'])->first();
+        if ($delOpt){
+            option::where('option_id',  $data['option_id'])->delete();
+            echo 1;
+        }else{
+            echo 2;
+        }
+      
 
     }
 
@@ -107,61 +142,100 @@ public function saveOptions($data){
 
     // Instruction
     public function getInstructions($data){
-        echo instruction::where('subject_id',$data['subject_id'])->get();
+        echo instruction::orderBy('created_at','desc')->where('subject_id',$data['subject_id'])->get();
     }
 
 
     public function saveInstruction($data){
-        if (instruction::where('instruction_id', '=', $data['instruction_id'])->exists()) {
-           instruction::where('instruction_id',$data['instruction_id'])->update(['instruction'=> $data['instruction']]);
+        if ($data['instruction_id'] != '') {
+           $instruction = instruction::where('instruction_id',$data['instruction_id'])->update(['instruction'=> $data['instruction']]);
+           if($instruction){
+               echo 2;
+            }
         }else{
             $instruction = new instruction;
             $instruction-> subject_id = $data['subject_id'];
-            $instruction-> instruction_id = $data['instruction_id'];
+            $instruction-> instruction_id = $this->generateId('ins');
             $instruction-> instruction = $data['instruction']; 
-            $instruction->save();
+            if($instruction->save()){
+                echo 1;
+            }
         }
     }
     public function deleteInstruction($data){
-        instruction::where('instruction_id',$data['instruction_id'])->delete();
-        question::where('instruction_id',$data['instruction_id'])->update(['instruction_id'=>'']);
-    }
-
-    public function save_question($data){
-        if (question::where('question_id', '=', $data['question_id'])->exists()) {
-            question::where('question_id', '=', $data['question_id'])->update([
-                    'questions'=>$data['questions'],
-                    'instruction_id'=>$data['instruction_id'],
-                    'answers_id'=>$data['answers_id'],
-            ]);
-
-         }else{
-
-        $question = new question;
-        $question-> question_id = $data['question_id'];
-        $question-> subject_id = $data['subject_id'];
-        $question-> questions = $data['questions'];
-        $question-> instruction_id = $data['instruction_id'];
-        $question->save();
-
-               
-    }
-
-        // select option
-        $option_arr= option::where('question_id',$data['question_id'])->get();
-        foreach ($option_arr as $key => $opt_arr) {
-            if($opt_arr['options'] == $data['answer']){
-                question::where('question_id', '=', $opt_arr['question_id'])->update(['answers_id'=>$opt_arr['option_id']]);
-            }
+        $delete = instruction::where('instruction_id',$data['instruction_id'])->delete();
+        if($delete){
+            question::where('instruction_id',$data['instruction_id'])->update(['instruction_id'=>'']);
+            echo 1;
         }
 
-        echo 'success';
+    }
+
+
+    // question
+
+    public function save_question($data){
+        // check if question alreay exist
+        $question = question::where('question_id', $data['question_id'])->first();
+        if($question){
+            // update data
+            question::where('question_id',  $data['question_id'])->update([
+                'questions'=> $data['question'],
+                'instruction_id'=> $data['instruction_id'],
+                'answers_id'=> $data['answers_id'],
+                ]);
+
+            // update Option
+            foreach ($data['options'] as $opt) {
+                $option = option::where('option_id',$opt['option_id'])->first();
+                if($option){
+                    option::where('option_id',$opt['option_id'])->update([
+                       'options' => $opt['options']
+                    ]);
+                }else{
+                    foreach ($data['options'] as $opt) {
+                        $option = new option;
+                        $option->option_id = $opt['option_id'];
+                        $option->options = $opt['options'];
+                        $option->question_id = $data['question_id'];
+                        $option->instruction_id = $data['instruction_id'];
+                        $option->save();
+                      }
+                }
+            }
+            echo 1;
+        }else{
+
+        // save Question
+        $question = new question;
+        $question-> question_id     = $data['question_id'];
+        $question-> subject_id      = $data['subject_id'];
+        $question-> questions       = $data['question'];
+        $question-> instruction_id  = $data['instruction_id'];
+        $question-> answers_id      = $data['answers_id'];
+
+        // save option
+      foreach ($data['options'] as $opt) {
+        $option = new option;
+        $option->option_id = $opt['option_id'];
+        $option->options = $opt['options'];
+        $option->question_id = $data['question_id'];
+        $option->instruction_id = $data['instruction_id'];
+        $option->save();
+      }
+        
+        if($question->save()){
+            echo 1;
+        }else{
+            echo 2;
+        }
+    }
     }
 
 
     public function deleteQuestion($data){
-       question::where('question_id', '=', $data['question_id'])->delete();
-       option::where('question_id', '=', $data['question_id'])->delete();
+       question::where('question_id', $data['question_id'])->delete();
+       option::where('question_id', $data['question_id'])->delete();
     }
 }
    

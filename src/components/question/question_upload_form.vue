@@ -1,271 +1,286 @@
 <template>
     <div class="pageLayout container">
-       
-   <p class="text-muted border-left pl-3"><b>Upload New {{$route.params.sub_id}} Question </b>  
-  
-   <router-link to="/uploadQuestion"><button class="btn btn-light mr-5"> CHANGE SUBJECT </button></router-link>
-   </p>
-   
- 
+              <!-- snackbar for  alert messages-->
+            <v-snackbar
+                    v-model="snackOptions.status"
+                    :color="snackOptions.color"
+                >
+                    {{ snackOptions.message }}
+                    <template v-slot:action="{ attrs }">
+                    <v-btn
+                        color="white"
+                        text
+                        v-bind="attrs"
+                        @click="snackOptions.status = false"
+                    >
+                        <v-icon>fas fa-times</v-icon>
+                    </v-btn>
+                    </template>
+                </v-snackbar>
+                
+                <!-- general progress bar -->
+                <v-dialog v-model="generalLoader.status" persistent  max-width="30vw" >
+                    <v-card class="text-center"  color="primary" dark>
+                        <v-card-text> 
+                             <span>{{generalLoader.response}}</span>
+                              <v-progress-linear indeterminate color="white" class="mb-0" ></v-progress-linear> 
+                        </v-card-text>
+                    </v-card>
+                </v-dialog>
+                
+       <p class="text-muted border-left pl-3"><b>Upload New {{$route.params.sub_id}} Question </b>  
+            <router-link to="/uploadQuestion"><button class="btn btn-light mr-5"> CHANGE SUBJECT </button></router-link>
+        </p>
        <hr>
     
        <div class="row">
            <div class="col-12">
-              
-                   
                    <div>
                       <div class="bg-danger text-white p-2 rounded shadow shadow-xs">
-                           <h4>
-                          SUBJECT: {{$route.params.sub_id}}
-                      </h4>
+                           <h4> SUBJECT: {{$route.params.sub_id}} </h4>
                       </div>
                     <hr>
-               <!-- overflow-auto -->
-                      <!-- SHOW ALL SUBJECT IN A TABLE -->
+            
+                <!-- SHOW ALL SUBJECT IN A TABLE -->
                       <div>
-
-                          <button @click="newQuestion()" class="btn btn-success mb-2"><i class="fas fa-plus mr-2 "></i>NEW QUESTION</button>
+                          <v-btn color="primary" dark class="mb-2" @click="showQuestionDialog = true" > <v-icon>mdi-plus</v-icon> NEW QUESTION</v-btn>
                       </div>
-                  <div class="overflow-auto" style="height:60vh">
+                
                     <!-- Get all question -->
-                    <table class="table">
-                        <tr>
-                            <th>INSTRUCTION ID</th>
-                            <th>QUESTION</th>
-                            <th>ANSWER</th>
-                            <th></th>
-                            <th></th>
-                        </tr>
-                        <tr v-for="(question, index) in  allQuestions" :key="index">
-                            <td>{{question.instruction_id}}</td>
-                            <td v-html="question.questions"></td>
-                            <td v-if="question.answer!=''"  v-html="question.answer"></td>
-                            <td v-else class="text-danger"><b> NO ANSWER SELECTED</b></td> 
-                            <td><button @click="editFunc(question.question_id)"  class="btn btn-success">Edit</button></td>
-                            <td><button @click="confirmDelete(question.question_id)" class="btn btn-danger"><i class="fas fa-trash"></i></button></td>
-                        </tr>                        
-                    </table>
-                  </div>
+                    <!-- data table code starts here -->
+                   <v-card>
+                       <v-card-title>
+                           <!-- search code -->
+                            <v-text-field
+                                v-model="searchQuestion"
+                                append-icon="mdi-magnify"
+                                label="Search"
+                                single-line
+                                hide-details>
+                            </v-text-field>
+                        </v-card-title>
+
+                    <!-- main data table -->
+                   <v-data-table :headers="headers" :items="question_arr" sort-by="calories"  class="elevation-1" :loading='loadingQuestions' loading-text="Loading... Please wait" :search="searchQuestion">
+                       
+                       <template v-slot:top> 
+                        <!-- NEW QUESTION DIALOGE -->
+                                 <v-dialog v-model="showQuestionDialog" persistent  max-width="70vw" >
+                                      <v-card>
+                                           <v-card-title>
+                                                <span class="headline">New Question</span>
+                                                </v-card-title>
+
+                                                <v-card-text>
+                                                <v-container>
+                                                    <v-row>
+                                                        <!-- instruction -->
+                                                        <v-col cols="8">
+                                                            <v-select
+                                                                v-model="selectedInstruction" 
+                                                                @change="setInstruction()"
+                                                                hint="Select an instruction from the drop down or click on edit button to add new instruction"
+                                                                :items="allInstruction"
+                                                                item-text="instruction"
+                                                                item-value="instruction_id"
+                                                                label="Select Instruction"
+                                                                class="basic"
+                                                                persistent-hint
+                                                                return-object
+                                                                single-line
+                                                                >
+                                                                 <template v-slot:prepend>
+                                                                        <v-btn @click="showInstructionDialog = true" color="blue" text > 
+                                                                 <v-icon>mdi-pencil</v-icon> Edit </v-btn>
+                                                                </template>
+                                                                 <template v-slot:item='{item}'> 
+                                                                     <span v-html='item.instruction'/> 
+                                                                    </template>
+
+
+                                                                <template v-slot:selection='{item}'> 
+                                                                    <span class="showInstruction" v-html='item.instruction'>{{ item.instruction.slice(0, 5) }}</span> 
+                                                                </template>
+                                                                
+                                                                </v-select>
+                                                            <!-- <v-chip>Add new instruction to question or bind to an existing instruction</v-chip> -->
+                                                        
+
+                                                        </v-col>
+                                                        <v-col cols="4">
+                                                         <v-btn @click="showOptionDialog = true" color="blue" text > <v-icon>mdi-pencil</v-icon> Edit Option</v-btn>
+                                                         </v-col>
+                                                    </v-row>
+                                                    <v-row>
+                                                         <v-col cols="8" class="overflow-auto" style="max-height:25vh">
+                                                             <span v-html="selectedInstruction.instruction"/>
+                                                         </v-col>
+                                                    </v-row>
+                                                    <v-row>
+                                                    <v-col  cols="8" class="overflow-auto" style="height:30vh" > 
+                                                        <!-- Question -->
+                                                        <div class="quill-editor">
+                                                              <quill-editor ref="myTextEditor" v-model="newQuestion_obj.question" requried> </quill-editor>
+                                                        </div> 
+                                                    </v-col>
+                                                    <v-col  cols="4" class="overflow-auto" style="height:30vh"> 
+                                                        <!-- options -->
+                                                            <ol type="A">
+                                                                <li v-for="(options) in newQuestion_obj.options" :key="options.option_id">
+                                                                    <span v-html="options.options">{{options.options}}</span>
+                                                                    <v-icon v-if="options.option_id == newQuestion_obj.answers_id" color="green">mdi-check</v-icon>
+
+                                                                </li>
+                                                            </ol>
+                                                         
+                                                      
+                                                    </v-col>
+                                                    </v-row>
+                                                </v-container>
+                                                </v-card-text>
+                                               
+                                                <v-card-actions>
+                                                    <v-btn  color="blue darken-1" text  @click="closeQustionDialog">  Cancel </v-btn>
+                                                    <v-btn color="blue darken-1" text @click="saveQuestion" > Save </v-btn>
+                                                </v-card-actions>
+                                        </v-card>
+                                </v-dialog>
+                        <!-- NEW OPTION -->
+                                <v-dialog v-model="showOptionDialog" persistent  max-width="50vw" >
+                                      <v-card>
+                                           <v-card-title>
+                                                <span class="headline">Option Dialog</span>
+                                                <v-spacer></v-spacer>
+                                                    <v-btn  color="blue darken-1" text  @click="showOptionDialog = false">
+                                                        
+                                                        <v-icon>fas fa-times</v-icon></v-btn>
+                                                </v-card-title>
+
+                                                <v-card-text>
+                                                <v-container>
+                                                   
+                                                    <v-row>
+                                                    <v-col  cols="6" class="overflow-auto" style="height:40vh" > 
+                                                        <!-- option -->
+                                                        <div class="quill-editor">
+                                                              <quill-editor class='ql-editor' ref="myTextEditor" v-model="newOptionData" requried> </quill-editor>
+                                                        </div> 
+                                                    </v-col>
+                                                     <v-col  cols="6" class="overflow-auto" style="height:40vh" > 
+                                                        <!-- option -->
+                                                         <ol type="A">
+                                                                <li class="newOption" @click="getEditOption(options.option_id)" v-for="(options) in newQuestion_obj.options" :key="options.option_id">
+                                                                    <span v-html="options.options">{{options.options}}</span>
+                                                                    <v-icon v-if="options.option_id == newQuestion_obj.answers_id" color="green">mdi-check</v-icon>
+
+                                                                </li>
+                                                            </ol>
+                                                      
+                                                    </v-col>
+                                                    
+                                                    </v-row>
+                                                </v-container>
+                                                </v-card-text>
+
+                                                <v-card-actions>
+                                                    <v-btn color="red darken-1" text @click="deleteOption" :disabled="!editMode" > <v-icon>mdi-delete</v-icon> Delete </v-btn>
+                                                    <v-btn color="blue darken-1" text @click="addOption" > <v-icon>mdi-check</v-icon> Done </v-btn>
+                                                    <v-btn color="blue darken-1" text @click="resetOption" :disabled="!editMode"> <v-icon>mdi-file</v-icon> New </v-btn>
+                                                    <v-btn color="blue darken-1" text @click="setAnswer" :disabled="!editMode" > <v-icon>mdi-check</v-icon>Set as Answer </v-btn>
+                                                    <v-spacer></v-spacer>
+
+                                                     <v-btn color="red darken-1" text @click="showOptionDialog = false" >  Close </v-btn>
+                                                </v-card-actions>
+                                        </v-card>
+                                </v-dialog>
+                     
+                     <!-- INSTRUCTION DIALOGE -->
+                          <v-dialog v-model="showInstructionDialog" persistent  max-width="50vw" >
+                                      <v-card>
+                                           <v-card-title>
+                                                <span class="headline">Instruction Dialog</span>
+                                                <v-spacer></v-spacer>
+                                                    <v-btn  color="blue darken-1" text  @click="showInstructionDialog = false">
+                                                        
+                                                        <v-icon>fas fa-times</v-icon></v-btn>
+                                                </v-card-title>
+
+                                                <v-card-text>
+                                                <v-container>
+                                                   
+                                                    <v-row>
+                                                    <v-col  cols="6" class="overflow-auto" style="height:40vh" > 
+                                                        <!-- option -->
+                                                        <div class="quill-editor">
+                                                              <quill-editor class='ql-editor' ref="myTextEditor" v-model="newInstruction_obj.instruction" requried> </quill-editor>
+                                                        </div> 
+                                                    </v-col>
+                                                     <v-col  cols="6" class="overflow-auto" style="height:40vh" > 
+                                                        <!-- List of instruction -->
+                                                    
+                                                        <v-list-item link @click="getEditInstruction(allInstruction.instruction_id,allInstruction.instruction )" v-for="(allInstruction) in allInstruction" :key="allInstruction.instruction_id">
+                                                            <v-list-item-content>
+                                                                <v-list-item-title>
+                                                                    <span v-html="allInstruction.instruction">{{allInstruction.instruction}}</span>
+                                                                </v-list-item-title>
+                                                            </v-list-item-content>
+                                                        </v-list-item>
+                                                       
+                                                    </v-col>
+                                                    
+                                                    </v-row>
+                                                </v-container>
+                                                </v-card-text>
+
+                                                <v-card-actions>
+                                                    <v-btn color="red darken-1" text @click="confirmInstructionDelete" :disabled="!editMode" > <v-icon>mdi-delete</v-icon> Delete </v-btn>
+                                                    <v-btn color="blue darken-1" text @click="addInstruction" > <v-icon>mdi-check</v-icon> Done </v-btn>
+                                                    <v-btn color="blue darken-1" text @click="resetInstruction" :disabled="!editMode"> <v-icon>mdi-file</v-icon> New </v-btn>
+                                                    <v-btn color="blue darken-1" text @click="bindInstruction" :disabled="!editMode" > <v-icon>mdi-check</v-icon>Bind to Question</v-btn>
+                                                    <v-spacer></v-spacer>
+
+                                                     <v-btn color="red darken-1" text @click="showInstructionDialog = false" >  Close </v-btn>
+                                                </v-card-actions>
+                                        </v-card>
+                                </v-dialog>
+
+                        </template>
+
+                        <template v-slot:item.instruction="{ item }" >
+                                <span v-html="item.instruction.slice(0,100)"></span>
+                        </template>
+
+                         <template v-slot:item.questions="{ item }" >
+                                <span v-html="item.questions"></span>
+                        </template>
+
+                         <template v-slot:item.answer="{ item }" >
+                                <span v-html="item.answer"></span>
+                        </template>
+                        
+                    
+                        <template v-slot:item.actions="{ item }">
+                            <v-icon small class="mr-2" @click="editItem(item)" > mdi-pencil </v-icon>
+                            <v-icon small @click="confirmDelete(item)"> mdi-delete </v-icon>
+                        </template>
+
+                        <template v-slot:no-data>
+                            <v-btn color="primary" @click="getAllQuestions">
+                                Refresh
+                            </v-btn>
+                        </template>
+
+                        
+                     
+
+                    </v-data-table>
+                   </v-card>
                 </div>
            </div>
        </div>
 
 
-       <!-- MODAL BOXES -->
-        <!-- =====================newQuestion -->
-
-            
-   <div id="overlay" class="px-5" v-if="showModel">
-            <div class="" style="margin-top:7%;">
-                <div class="modal-content ">
-                   <form action="" @submit.prevent="addQuestion">
-                       
-                    <div class="modal-header">
-                        <h5 class="modal-title">Add New Question</h5>
-                        <button type="button" class="close" @click="showModel=false">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body p-4">
-                       <!-- body -->
-                    <!-- Compose new subject title  -->
-                    <div class="from-group">
-                        <div class="row">
-                            <div class="col-3">
-                                <h6 >INSTRUCTION</h6>
-                                <hr>
-                                <!-- saveQuestion.hasOwnProperty('instruction_id') -->
-                                <div class="my-3">
-                                    <p v-if="saveQuestion.instruction_id !=''" style="cursor: pointer" v-html="currentInstruction">
-                               
-                                    </p>
-                                    <p class="text-danger" v-else>NO INSTRUCTION BINDED TO THIS QUESTION</p>
-                                </div>
-                              
-                                <button type="button" @click="checkInstruction()" class="btn btn-success">BIND INSTRUCTION</button>
-                                <hr>
-                                <button @click="showOptionMtd();" type="button" class="btn btn-success"><i class="fa fa-plus"></i> ADD OPTIONS</button>
-                                
-
-                                <div class="overflow-auto; mt-2" style="height:10vh">
-                                    
-                                 <span><b>ANSWER:</b> 
-                                 <p v-if="saveQuestion.answer !=''" v-html="saveQuestion.answer">
-                                    
-                                 </p>
-                                 <p v-else-if="saveQuestion.answer==''" class="text-danger" >
-                                 NO ANSWER SELECTED
-
-                                 </p>
-                                 </span>
-                                </div>
-                            </div>
-                            <div class="col-9">
-                            
-                          <div class="quill-editor">
-                               <quill-editor ref="myTextEditor"
-                                    v-model="saveQuestion.questions"
-                                    requried
-                                    >
-                                </quill-editor>
-                                </div>
-                            </div>
-                        </div>
-                             
-                    </div>
-                    
-                   
-                       <!-- end of body -->
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" @click="showModel=false" >Close</button>
-                        <button type="submit" class="btn btn-primary">
-                            <span> {{feedBack}} </span>
-                            <i v-if="!showSpinner" class=" fa fa-spinner fa-spin" style="font-size:24px"></i> </button>
-                    </div>
-                   </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- =====================End newQuestion -->
-
-        <!-- =====================instruction Modal -->
-
-        <div id="overlay" v-if="showInstructionModel">
-            <div class="modal-dialog" style="margin-top:7%; right:6%">
-                <div class="modal-content " style="width:50vw;margin:auto">
-                    <form action="" @submit.prevent="saveInstruction">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Add New Instruction</h5>
-                        <button type="button" class="close" @click="resetInstructionForm(), showInstructionModel=false">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body p-4">
-                       <!-- body -->
-                    <!-- Compose new subject title  -->
-                    <div class="from-group">
-                        <div class="row">
-                            <div class="col-4">
-                                <h6 >INSTRUCTION ID</h6>
-                                <hr>
-                               click on an instruction id to edit it
-                               
-                                <select v-model="selected_ins" @click="updateInstruction"  class="form-control "  size="4">
-                                    <option :value="{text:instruction.instruction, id:instruction.instruction_id}" class="instruc text-light p-2 mb-2" v-for="(instruction, index) in  allInstruction" :key="index" v-html="instruction.instruction">
-                                       
-                                    </option>
-                                </select>
-                                <button @click="selected_ins = {}, newInstruction()" type="button" class="mt-3 btn btn-success"><i class="mr-3 fa fa-plus"></i>New Instruction</button>
-                            </div>
-                            <div class="col-8">
-                          
-                            <div v-if="!showEditor" class="m-5" v-html="selected_ins.text">
-                            </div>
-                              <quill-editor 
-                                    v-else-if="showEditor"
-                                    ref="instruction"
-                                    v-model="selected_ins.text"
-                                    placeholder="Instruction content" 
-                                    name="instruction" >
-                                </quill-editor>
-                               
-                            </div>
-                        </div>
-                             
-                    </div>
-                    
-                   
-                       <!-- end of body -->
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" @click="resetInstructionForm(), showInstructionModel=false" >Close</button>
-                        <button  :disabled="btnDelDisabled" type="button" @click="deleteInstructon(selected_ins.id)" class="btn btn-danger">DELET</button>
-                        <button  :disabled="btnEditDisabled" type="button" @click="showEditor = true;" class="btn btn-success">Edit</button>
-                        <button  :disabled="btnSaveDisabled" type="submit" @click="showEditor = false;" class="btn btn-primary">
-                            <span> Save</span>
-                            <i v-if="!showSpinner" class="fa fa-spinner fa-spin" style="font-size:24px"></i> </button>
-                    </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-        <!-- =====================end of  instruction Modal -->
-
-
-              <!-- =====================new OPTIONS -->
-   <div id="overlay" class=" px-5" v-if="showOption">
-            <div class="h-100" style=" margin-top:4rem;">
-                <div class="modal-content">
-                    <form action="" @submit.prevent="saveOption">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Question Options</h5>
-                        <button type="button" class="close" @click="showOption=false">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body p-4" >
-                       <!-- body -->
-                    <!-- Compose new subject title  -->
-                    <div class="from-group row">
-                        <div class="col-8">
-                                 <div style="min-height:50vh;">
-                        <i class="text-danger">Type in your option and click the below button</i>
-                      
-                      <quill-editor ref="option"
-                                    v-model="currentOption"
-                                    >
-                                </quill-editor>
-                           
-
-                                </div>
-                        <button type="button" @click="addOption" class="btn btn-success mb-2"> {{optionStatusText}}
-                            <i v-if="!showSpinner" class="fa fa-spinner fa-spin" style="font-size:24px"></i>
-                        </button>
-                       <button type="button" @click="deleteOpton" :disabled="optionBtnDisable" class="btn btn-danger mx-3 mb-2"> DELETE</button>
-
-                       <button type="button" @click="currentOption = '', optionStatusText='ADD OPTION', optionBtnDisable = true " :disabled="optionBtnDisable" class="btn btn-light  mb-2"> CANCEL</button>
-                        </div>
-                       
-                       <br>
-                       <div class="col-4">
-                       <div class="d-flex">
-                           
-                      
-                        
-                       </div>
-
-                       <p class="text-danger">Check the a radio button to set option as answer</p>
-                       <div class="overflow-auto mt-3" style="height:50vh">
-                           <ol type="A" class="d-block">
-                               <li class="optionClass" @click="selectOption(index, optionItem.option_id)" v-for="(optionItem, index) in optionObject" :key="index">)
-                                   <span>
-                                   <input :checked="optionItem.option_id == saveQuestion.answers_id"  class="mr-3" :value="optionItem.options" type="radio" name="options" id=""> 
-                                        <span v-html="optionItem.options"></span>
-                                   </span>
-                                    
-                                </li>
-                        
-                           </ol>
-                       </div>
-                    </div>
-                    
-                       <!-- end of body -->
-                    </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" @click="showOption=false; this.saveQuestion.answers_id = ''" >Close</button>
-                        <button type="submit" class="btn btn-primary">
-                            <span> {{feedBack}} </span>
-                            <i v-if="!showSpinner" class="fa fa-spinner fa-spin" style="font-size:24px"></i> </button>
-                    </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- =====================End option -->
+      
 
     </div>
 </template>
@@ -275,49 +290,41 @@
 export default {
     data(){
         return{
-           allQuestions:{},
+            // Boolian Variables
+            showQuestionDialog:false,
+            loadingQuestions:false,
+            showOptionDialog:false,
+            showInstructionDialog:false,
+            editMode:false,
+            dialogDelete: false,
+            showLoading:false,
 
-            //user data    
-           saveQuestion:{},
-           selected_ins:{},
 
-            // question Options
-            questionOption:[],
+            // array and Objects Variables
+            generalLoader:{status:false, response:''},
+            newQuestion_obj:{answers_id:'', options:[], instruction_id:'', instruction:'', question_id:'', question:'', subject_id:''},
+            question_arr:[],
+            snackOptions:{status:false, color:'', message:''},
+            headers: [
+                { text: 'INSTRUCTION', align: 'start', sortable: true, value: 'instruction'},
+                { text: 'QUESTIONS', value: 'questions', sortable: true,  },
+                { text: 'ANSWERS', value: 'answer', sortable: true, },
+                { text: 'Actions', value: 'actions', sortable: false },
+            ],
 
-            // instruction data
-            allInstruction:{},
-            showEditor:false,
-            currentInstruction:'',
+            newInstruction_obj:{subject_id:'', instruction_id:'', instruction:''},
+            allInstruction:[],
 
-            // Option data
-            showOption:false,
-            currentOption:'',
-            optionArray:[],
-            optionObject:{},
-            optionBtnDisable:true,
-            optionStatusText:'ADD OPTION',
-            selectedOpiton:null,
-            opt:{},
+            // Data Variables
+            searchQuestion:'',
+           newOptionData:'',
+           option_id:'',
+           selectedInstruction:{}
 
-            // modal properties
-            showModel:false,
-            showInstructionModel:false,
-            showSpinner:true,
-            errorReport:null,
-            feedBack:"Save",
-            disable:true,
-
-            // others
-            isDisabled:true,
-            btnDelDisabled:false,
-            btnEditDisabled:false,
-            btnSaveDisabled:false,
-            taskType:'',
-            // editor:ClassicEditor,
         }
     },
     methods:{
-        generateID(id_type){
+         generateID(id_type){
                 let token = 'qwertzuiopasdfghjklyxcvbnmABCDEFGHIJKLMNOPQRSTUVWXYZ123456789abcdefghijklmnopqrstuvwxyz';
                 let str = token.split('').sort(function(){
                     return 0.5-Math.random()
@@ -329,87 +336,90 @@ export default {
                 var year = date.getFullYear();
                 str = id_type+'_'+str+year+month+day;
             return str;
-        },
-        getAnswer(q_id, answer_id, count){
-            let question_id = {'question_id':q_id, 'answer_id':answer_id};
-            
-            this.axios.post(this.$hostname+"junior_api.php?action=getAnswer",question_id).then((response)=>{
-                this.allQuestions[count].answer = response.data[0].options;
-            }).catch(error=>{
-               error;
-            })
-        },
-        getAllQuestions(){
-            let subject_id = {'subject_id':this.$session.get('subject')};
-             this.axios.post(this.$hostname+"junior_api.php?action=getAllQuestions",subject_id).then((response)=>{
-                 let allQuestions = response.data;
-                   this.allQuestions= allQuestions;
-                
-            }).then((updated)=>{
-                updated
-                 for (let index = 0; index < this.allQuestions.length; index++) {
-                   let question_id =this.allQuestions[index].question_id;
-                   let answer_id = this.allQuestions[index].answers_id;
-                  this.getAnswer(question_id, answer_id, index)
-                 }
-            }).catch(error=>{
-                console.log(error);
-            })
-        },
+         },
 
-        
-        addQuestion(){
-            this.feedBack='Uploading....'
-            this.showSpinner= false;
-            this.saveQuestion.subject_id = this.$session.get('subject')
-            this.saveQuestion.options = this.optionObject;
-
-            // Check if there is instruction
-            if(!Object.prototype.hasOwnProperty.call(this.saveQuestion,'instruction_id')){
-                this.saveQuestion.instruction_id = '';
-            }
-
-            // check if there is option in the question
-            if(!Object.prototype.hasOwnProperty.call(this.saveQuestion,'answer')){
-                this.saveQuestion.answer = '';
-            }
-             this.axios.post(this.$hostname+"junior_api.php?action=save_question",this.saveQuestion).then((response)=>{
-                if (response.data=='success'){    
-                    this.showModel=false;
-                    this.feedBack="Save";
+        //  METHODS FOR INSTRUCTION 
+        getInstructions(){
+             this.allInstruction = [];
+             let subject_id = {'subject_id':this.$session.get('subject')};
+             this.axios.post(this.$hostname+"junior_api.php?action=getInstructions",subject_id).then((response)=>{
+                for (let index = 0; index < response.data.length; index++) {
+                      this.allInstruction.push(response.data[index]);
                 }
-               
-            }).then(saveQuestion=>{
-                saveQuestion;
-                  this.showSpinner= true;
-                this.showModel=false;
-                this.feedBack="Save";
-            this.getAllQuestions();
+                //  this.allInstruction.push(response.data)
+              
+            }).catch(error=>{
+               this.snackOptions.color = 'red'
+               this.snackOptions.message = error
+               this.snackOptions.status = true
+                
 
-            }).
-            catch(error=>{
-                console.log(error);
-            });
-
-          
-
-        },
-        newQuestion(){
-          this.currentInstruction='';
-          this.saveQuestion={};
-          this.saveQuestion.question_id= this.generateID('qst');
-          this.currentOption = '';
-          this.optionStatusText='ADD OPTION';
-          this.optionBtnDisable = true;
-          this.showModel=true;
-
+            })
         },
 
-        confirmDelete(question_id){
+        getEditInstruction(instruction_id, instruction){
+            this.generalLoader.status = true
+            this.generalLoader.response ='Loading...please wait'
+            this.editMode = true
+            this.newInstruction_obj.subject_id =this.$session.get('subject')
+            this.newInstruction_obj.instruction_id =instruction_id
+            this.newInstruction_obj.instruction = instruction
+         
+             this.generalLoader.status = false
+
+        },
+     
+            resetInstruction(){
+                 this.editMode = false
+                this.newInstruction_obj={subject_id:'', instruction_id:'', instruction:''}
+            },
+
+            addInstruction(){
+                if(this.newInstruction_obj.instruction == ''){
+                    this.snackbackMethod('red', 'Type question before saving', true)
+                }else{
+                    this.newInstruction_obj.instruction = this.removeQullTag(this.newInstruction_obj.instruction)
+                    this.newInstruction_obj.subject_id =this.$session.get('subject')
+                    this.generalLoader.status = true
+                    this.generalLoader.response ='...please wait'
+                    this.axios.post(this.$hostname+"junior_api.php?action=saveInstruction",this.newInstruction_obj).then((response)=>{
+                        this.generalLoader.status = false
+                    if(response.data ==1){
+                        this.resetInstruction();
+                        this.snackbackMethod('green', 'Instruction Added', true)
+
+                    }else if(response.data ==2){
+                        // this.selectedInstruction.instruction = this.newInstruction_obj.instruction
+                        this.resetInstruction();
+                        this.snackbackMethod('green', 'Instruction Updated', true)
+                        
+                    }else{
+                        
+                    this.snackbackMethod('red', 'try again, an error occured!', true)
+                    }
+                
+                    this.getInstructions();
+                    }).catch(error=>{
+                        this.generalLoader.status = false
+                    this.snackbackMethod('red', error, true)
+                    })
+                }
+            },
+
+            bindInstruction(){
+                this.newQuestion_obj.instruction_id =  this.newInstruction_obj.instruction_id
+                this.snackbackMethod('green', 'Instruction binded to this question', true)
+            },
+
+            setInstruction(){
+                this.newQuestion_obj.instruction_id =  this.selectedInstruction.instruction_id
+                this.snackbackMethod('green', 'Instruction binded to this question', true)
+            }, 
+
+           confirmInstructionDelete(){
            this.$swal.fire({
             title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-
+            text: "Every instruction binded to question would be deleted",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
@@ -417,247 +427,289 @@ export default {
             confirmButtonText: 'Yes, delete it!'
             }).then((result)=>{
                 if(result.value){
-                    this.$swal.fire(
-                        this.deleteFunc(question_id),
-                        'success'
-                    )
+                        this.deleteInstruction()
+
+                    // this.$swal.fire(
+                    //     // icon  = 'success'
+
+                    // )
 
                 }
             });          
         },
 
-        deleteFunc(question_id){
-             let qustion_id = {'question_id':question_id}
-             this.axios.post(this.$hostname+"junior_api.php?action=deleteQuestion",qustion_id).then((response)=>{
-                 {response}
-                }).then(endre=>{
-                    {endre}
-                 this.getAllQuestions();
-
-                })
-                .catch(error=>{
-                    console.log(error)
-                })
-
-        },
-
-        editFunc(question_id){
-           
-             let question_id_obj = {'question_id':question_id}
-            this.axios.post(this.$hostname+"junior_api.php?action=getOneQuestion",question_id_obj).then((response)=>{
-                   
-                    let questionData = response.data;
-                    this.saveQuestion = questionData[0];
-                    
-                }).then(res=>{
-                      let answer_id_arr = {'question_id':question_id, 'answer_id':this.saveQuestion.answers_id}
-                     this.axios.post(this.$hostname+"junior_api.php?action=getAnswer",answer_id_arr).then((response2)=>{
-                          this.saveQuestion.answer = response2.data[0].options;
-                            for (let index = 0; index < this.allInstruction.length; index++) {
-                                if (this.allInstruction[index].instruction_id== this.saveQuestion.instruction_id) {
-                                    this.currentInstruction = this.allInstruction[index].instruction.slice(0,50)+'....';
-                                   
-                                }
-                                
-                            }
-                            // this.currentInstruction = 
-                     }); {{res}} 
-                   this.showModel=true;
-                }).
-                catch(error=>{
-                      
-                    console.log(error)
-                })
-        },
-
-
-        // Instruction methods
-
-        // main crude
-        getInstructions(){
-                    let subject_id = {'subject_id':this.$session.get('subject')};
-                    this.axios.post(this.$hostname+"junior_api.php?action=getInstructions",subject_id).then((response)=>{
-                    
-                        this.allInstruction= response.data;
-                    }).catch(error=>{
-                        console.log(error);
-                    });
-                },
-
-
-        saveInstruction(){
-            let instruction_data = {'subject_id':this.$session.get('subject'),'instruction_id':this.selected_ins.id,'instruction':this.selected_ins.text};
-            this.axios.post(this.$hostname+"junior_api.php?action=saveInstruction", instruction_data).then((response)=>{
-                         response;
-                         this.saveQuestion.instruction_id=instruction_data.instruction_id;
-                         this.currentInstruction=instruction_data.instruction.slice(0,50)+'....';
-                         this.getInstructions();
-                     });
-        },
-        updateInstruction(){
-            this.showEditor = false
-            this.btnDelDisabled = false;
-            this.btnEditDisabled = false;
-             this.btnSaveDisabled = false;
-        },
-        deleteInstructon(instruction_id){
-           let instruction_id_obj = {'instruction_id':instruction_id}
-                     this.axios.post(this.$hostname+"junior_api.php?action=deleteInstruction", instruction_id_obj).then((response)=>{
-                         response;
-                         this.getInstructions();
-                             this.showEditor = false;
-                            this.btnDelDisabled = true;
-                            this.btnEditDisabled = true;
-                            this.btnSaveDisabled = true;
-                         this.selected_ins.text='';
-                     });
-        },
-
-        // other methods
-        
-
-        newInstruction(){
-                this.btnDelDisabled = true;
-                this.btnEditDisabled = true;
-                this.btnSaveDisabled = false;
-           this.showEditor = true;
-            this.selected_ins.id=this.generateID("ins");
-        //    
-        },
-
-        resetInstructionForm(){
-            this.isDisabled =true;
-        },
-        checkInstruction(){
-            if(this.saveQuestion.instruction_id==''){
-                this.btnDelDisabled = true;
-                this.btnEditDisabled = true;
-                this.btnSaveDisabled = true;
-            }
-            for (let index = 0; index < this.allInstruction.length; index++) {
-               if(this.allInstruction[index].instruction_id==this.saveQuestion.instruction_id){
-                   this.selected_ins.text = this.allInstruction[index].instruction;
-               }
-            }
-           
-            this.showInstructionModel = true
-
-           
-        },
-
-
-        // START ======================= METHODS FOR OPTIONS
-            getOptionsFromDB(){
-                    let option_data = {'question_id':this.saveQuestion};  
-                    this.axios.post(this.$hostname+"junior_api.php?action=getQuestionOptions",option_data).then((response)=>{
-                        this.optionObject = response.data;
-                    });
-            },
-            showOptionMtd(){
-                    let option_data = {'question_id':this.saveQuestion};    
-                    this.axios.post(this.$hostname+"junior_api.php?action=getQuestionOptions",option_data).then((response)=>{
-                        this.optionObject = response.data;
-                        this.currentOption = this.saveQuestion.answer;
-                        if(this.saveQuestion.answer==undefined){
-                            this.optionBtnDisable = false;
-                            this.optionStatusText='ADD OPTION';
-
-                        }else{
-                            this.optionBtnDisable = false;
-                            this.optionStatusText = 'UPDATE';
-                        }
-                            this.showOption=true;  
-
-                     })
-                   
-               
-        },
-        addOption(){
-
-            if (this.currentOption == ''){
-                alert('Please type in your option')
-            }else{
-            if(this.currentOption != '' & this.optionStatusText != 'UPDATE'){
-                let option_data = {'question_id':this.saveQuestion.question_id, 'options':this.currentOption};  
-                 this.axios.post(this.$hostname+"junior_api.php?action=saveOptions",option_data).then((response)=>{
-                     response
-                     this.getOptionsFromDB();
-                 })
-            }else if(this.optionStatusText == 'UPDATE'){
+        deleteInstruction(){
+            let instruction_id ={'instruction_id' : this.newInstruction_obj.instruction_id}
+             this.axios.post(this.$hostname+"junior_api.php?action=deleteInstruction",instruction_id).then((response)=>{
                 
-                 let option_data = {'question_id':this.saveQuestion.question_id, 'option_id':this.saveQuestion.answers_id, 'options':this.currentOption};  
-                 this.axios.post(this.$hostname+"junior_api.php?action=updateOption",option_data).then((response)=>{
-                     response
-                    this.getOptionsFromDB();
-                 })
-                this.optionStatusText='ADD OPTION';
-                this.optionBtnDisable = true;
-            }else{
-                //  this.$refs.option.focus();
-            }
-            this.currentOption = '';
-            }
-        },
-        selectOption(index, option_id){
-            this.currentOption =this.optionObject[index].options;
-            this.saveQuestion.answers_id = option_id;
-            this.saveQuestion.answer= this.currentOption;
-            this.selectedOpiton = index;
-            this.optionBtnDisable = false;
-            this.optionStatusText = 'UPDATE';
-        },
-        deleteOpton(){
-            let option_data = {'option_id':this.saveQuestion.answers_id};  
-                 this.axios.post(this.$hostname+"junior_api.php?action=deleteOption",option_data).then((response)=>{
-                     response
-                    this.getOptionsFromDB();
+                 if (response.data == 1){
+                this.getInstructions();
+                    this.resetInstruction();
+
+                this.snackbackMethod('green', 'Instruction Deleted', true)
+                 }
+             }).catch(error=>{
+                this.snackbackMethod('red', error, true)
             })
-
-            this.saveQuestion.answers_id ='';
-            this.currentOption = '';
-            this.optionStatusText='ADD OPTION';
-            this.optionBtnDisable = true;
-
         },
-        saveOption(){
-            if(this.saveQuestion.answers_id ==''){
-                alert('You have not selected any answer');
+
+        
+        // METHODS FOR QUESTIONS
+         getAllQuestions(){
+             this.loadingQuestions = true
+            let subject_id = {'subject_id':this.$session.get('subject')};
+             this.axios.post(this.$hostname+"junior_api.php?action=getAllQuestions",subject_id).then((response)=>{
+                this.question_arr = response.data;
+                this.loadingQuestions =false
+                
+            }).catch(error=>{
+               this.snackbackMethod('red', error, true)
+                this.loadingQuestions =false
+
+            })
+        },
+        saveQuestion(){
+            if(this.newQuestion_obj.question == ''){
+                this.snackbackMethod('red', 'Type question before saving', true)
             }else{
-                this.saveQuestion.answer = this.currentOption;
-                this.showOption = false;
+            this.generalLoader.status = true,
+            this.generalLoader.response ='Saving Question....please wait'
+
+            if (this.newQuestion_obj.question_id == '' && this.newQuestion_obj.subject_id == ''){
+                this.newQuestion_obj.question_id = this.generateID('qst')
+                this.newQuestion_obj.subject_id = this.$session.get('subject')
+            }
+             this.axios.post(this.$hostname+"junior_api.php?action=save_question",this.newQuestion_obj).then((response)=>{
                
+              if(response.data == 1){
+                  this.getAllQuestions();
+                this.generalLoader.status = false
+                this.closeQustionDialog()
+                this.newQuestion_obj={answers_id:'', options:[], instruction_id:'', instruction:'', question_id:'', question:'', subject_id:''}
+                this.snackbackMethod('green', 'success', true)
+              }else {
+                this.generalLoader.status = false
+                  this.snackbackMethod('red', 'sorry an error occured', true)
+              }
+                
+                
+
+                this.loadingQuestions =false
+                
+            }).catch(error=>{
+             this.snackbackMethod('red', error, true)
+                this.generalLoader.status = false,
+
+                this.loadingQuestions =false
+
+            })
+            }
+
+            // reset form
+            this.newQuestion_obj={
+                answers_id:'',
+                options:[], 
+                instruction_id:'', 
+                instruction:'', 
+                question_id:'', 
+                question:'', 
+                subject_id:''
             }
         },
-        // END ======================== METHODS FOR OPTIONS
 
-      
-    },
- 
-    created(){
-        
-        
-    },
-    mounted(){
-        this.getAllQuestions();
-        this.getInstructions();
-    },
-    updated(){
-       
-    },
-  
-    watch: {
-        scrollFix(){
-            let winOffset = this.$windowObj.scrollTop || this.$windowObj.body.scrollTop;
-                if(winOffset>50){
-                   this.fixedTop= true;
-                }else{
-                    this.fixedTop= false;
+
+        editItem(item){
+            this.newQuestion_obj.answers_id = item.answers_id
+            this.selectedInstruction.instruction = item.instruction
+            this.newQuestion_obj.instruction_id = item.instruction_id
+            this.newQuestion_obj.question_id = item.question_id
+            this.newQuestion_obj.question = item.questions
+                this.newQuestion_obj.options=item['options']
+                
+            this.showQuestionDialog = true;
+
+        },
+
+
+
+
+
+        // METHODS FOR OPTIONS
+        addOption(){
+            if(this.newOptionData ==''){
+                this.snackbackMethod('red', 'type your option', true)
+            }else{
+                if(this.editMode == false){
+                    this.newOptionData = this.removeQullTag(this.newOptionData)
+                    let newOption = {}
+                    newOption.option_id = this.generateID('otp')
+                    newOption.options = this.newOptionData
+                    this.newQuestion_obj.options.push(newOption)
+                    this.newOptionData = ''
+                }else if(this.editMode == true){
+                    this.newOptionData = this.removeQullTag(this.newOptionData)
+                    
+
+                    // update option in array
+                    this.newQuestion_obj.options.find((o, i) => {
+                        if (o.option_id === this.option_id) {
+                            this.newQuestion_obj.options[i] = { option_id: this.option_id, options: this.newOptionData};
+                            return true; // stop searching
+                        }
+                    });
+
+                    this.newOptionData = ''
+                    this.editMode = false
 
                 }
+            }
         },
-      
-    },
+
+        getEditOption(option_id){
+             this.generalLoader.status = true
+            this.generalLoader.response ='Loading...please wait'
+            this.editMode = true
+           this.option_id = option_id
+           this.newQuestion_obj.options.find((o, i) => {
+                if (o.option_id === option_id) {
+                    this.newOptionData = this.newQuestion_obj.options[i].options
+                    // this.newQuestion_obj.options[i] = { option_id: option_id, option: this.newOptionData};
+                    return true; // stop searching
+                }
+            });
+             this.generalLoader.status = false
+
+        },
+
+         resetOption(){
+            this.option_id=''
+            this.editMode = false
+            this.newOptionData = ''
+        },
+
+        deleteOption(){
+            // remove option from array 
+            this.newQuestion_obj.options.find((o, i) => {
+                if (o.option_id === this.option_id) {
+                    this.newQuestion_obj.options.splice(i, 1);
+                    return true; // stop searching
+                }
+            });
+
+             this.newOptionData = ''
+             this.editMode = false
+
+            // delete option from database
+            let option_id = {'option_id':this.option_id}
+             this.axios.post(this.$hostname+"junior_api.php?action=deleteOption",option_id).then((response)=>{
+            
+                    if (response.data == 1 || response.data == 2){
+                        this.snackbackMethod('green', 'Option Deleted Successfully',true)
+                        
+                    }
+            
+            }).catch(error=>{
+             this.snackbackMethod('red', error, true)
+                this.generalLoader.status = false,
+
+                this.loadingQuestions =false
+
+            })
+            
+            
+        },
+        
+        setAnswer(){
+            this.newQuestion_obj.answers_id = this.option_id
+             this.newOptionData = ''
+             this.editMode = false
+              
+        },
+
+
+
+        // METHODS FOR DELETE
+         confirmDelete(item){
+           this.$swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+            }).then((result)=>{
+                if(result.value){
+                        this.deleteFunc(item)
+
+                    // this.$swal.fire(
+                    //     // icon  = 'success'
+
+                    // )
+
+                }
+            });          
+        },
+        
+
+       deleteFunc (item) {
+         this.axios.post(this.$hostname+"junior_api.php?action=deleteQuestion", item).then(()=>{
+                    this.snackbackMethod('green', 'Question Deleted ', true)
+             
+                this.getAllQuestions();
+            }).catch(error=>{
+              this.errorMessage = error
+                this.showSnackbarAlert = true
+            });
+
+      },
 
     
+
+     
+
+        removeQullTag(q_data){
+            q_data =  q_data.replace(/<p[^>]*>/g, "");
+            return q_data = q_data.replace(/<\/?p[^>]*>/g, "")
+        },
+        closeQustionDialog(){
+            this.selectedInstruction = {}
+            this.showQuestionDialog = false;
+        },
+       
+       
+        snackbackMethod(color, message, status){
+             this.snackOptions.color = color
+               this.snackOptions.message = message
+               this.snackOptions.status = status
+        }
+    },
+    mounted(){
+        this.getInstructions();
+        this.getAllQuestions();
+    },
 }
 </script>
+
+<style scoped>
+.newOption{
+    cursor:pointer;
+    padding:2px 0px 2px 5px
+}
+
+.newOption:hover{
+    background-color: rgb(206, 234, 236);
+   
+}
+
+.basic{
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.showInstruction img{
+    width: 100%;
+}
+</style>

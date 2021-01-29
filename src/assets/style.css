@@ -109,11 +109,10 @@ cursor: pointer;
  .quill-editor, .ql-editor, .ql-container .ql-snow{
     margin: 0 auto;
     width: 100%;
-    min-height: 30vh;
-    max-height: 30vh;
+    /* min-height: 30vh;
+    max-height: 30vh; */
   }
 
-  
   
   
  .ql-toolbar .ql-snow

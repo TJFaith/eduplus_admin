@@ -1,23 +1,23 @@
 <template>
     <div class="Container">
         <div class="pageLayout d-flex justify-content-center text-white">
-<!-- snackbar for error alert -->
- <v-snackbar
-      v-model="showSnackbarAlert"
-      color="red"
-    >
-      {{ errorMessage }}
-      <template v-slot:action="{ attrs }">
-        <v-btn
-          color="white"
-          text
-          v-bind="attrs"
-          @click="showSnackbarAlert = false"
-        >
-          <v-icon>fas fa-times</v-icon>
-        </v-btn>
-      </template>
-    </v-snackbar>
+      <!-- snackbar for error alert -->
+      <v-snackbar
+            v-model="showSnackbarAlert"
+            color="red"
+          >
+            {{ errorMessage }}
+            <template v-slot:action="{ attrs }">
+              <v-btn
+                color="white"
+                text
+                v-bind="attrs"
+                @click="showSnackbarAlert = false"
+              >
+                <v-icon>fas fa-times</v-icon>
+              </v-btn>
+            </template>
+          </v-snackbar>
 
     <!-- end of snackbar -->
 <v-data-table
